@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Background with rounded corners (iOS app-icon shape) -->
+  <rect width="1024" height="1024" rx="224" ry="224" fill="#0f0f10"/>
+
+  <!-- Dumbbell, centered, slightly rotated for dynamic feel -->
+  <g transform="translate(512 512) rotate(-30)">
+    <!-- Bar -->
+    <rect x="-300" y="-32" width="600" height="64" rx="16" fill="#f5f5f7"/>
+
+    <!-- Inner plates (closer to grip) -->
+    <rect x="-260" y="-90" width="50" height="180" rx="14" fill="#ff9f0a"/>
+    <rect x="210" y="-90" width="50" height="180" rx="14" fill="#ff9f0a"/>
+
+    <!-- Outer plates (bigger weights at the ends) -->
+    <rect x="-360" y="-140" width="80" height="280" rx="20" fill="#f5f5f7"/>
+    <rect x="280" y="-140" width="80" height="280" rx="20" fill="#f5f5f7"/>
+  </g>
+</svg>

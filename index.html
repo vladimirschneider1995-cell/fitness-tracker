@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>Fitness</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fitness">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#111111">
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>Fitness</h1>
+    <button id="btn-settings" class="icon-btn" aria-label="Einstellungen">⚙︎</button>
+  </header>
+
+  <main id="view-home" class="view">
+    <section class="group" data-group="upper">
+      <h2 class="group-title">Oberkörper</h2>
+      <div class="categories" data-categories="upper"></div>
+    </section>
+
+    <section class="group" data-group="lower">
+      <h2 class="group-title">Unterkörper</h2>
+      <div class="categories" data-categories="lower"></div>
+    </section>
+  </main>
+
+  <!-- Übung-Detail Modal -->
+  <div id="modal-exercise" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <header class="modal-header">
+        <button class="icon-btn modal-close" data-close>←</button>
+        <h2 id="modal-title">Übung</h2>
+        <span class="spacer"></span>
+      </header>
+
+      <div class="modal-body">
+        <div id="modal-icon-slot" class="modal-icon-slot"></div>
+
+        <div class="weight-display">
+          <span id="weight-current">—</span>
+          <span class="unit">kg</span>
+        </div>
+
+        <form id="form-weight" autocomplete="off">
+          <input
+            type="number"
+            id="input-weight"
+            inputmode="decimal"
+            step="0.5"
+            min="0"
+            placeholder="Neues Gewicht"
+            required
+          >
+          <button type="submit" class="btn-primary">Speichern</button>
+        </form>
+
+        <section class="history">
+          <h3>Verlauf</h3>
+          <ul id="history-list" class="history-list"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <header class="modal-header">
+        <button class="icon-btn modal-close" data-close>←</button>
+        <h2>Einstellungen</h2>
+        <span class="spacer"></span>
+      </header>
+
+      <div class="modal-body">
+        <section class="settings-section">
+          <h3>Neue Übung</h3>
+          <form id="form-new-exercise" autocomplete="off">
+            <input type="text" id="new-ex-name" placeholder="Name (z.B. Bizeps Curl)" required>
+            <select id="new-ex-group" required>
+              <option value="upper">Oberkörper</option>
+              <option value="lower">Unterkörper</option>
+            </select>
+            <input type="text" id="new-ex-category" placeholder="Kategorie (z.B. Arme)" required>
+
+            <div class="icon-picker">
+              <label class="icon-picker-label">Icon</label>
+              <div id="icon-picker-grid" class="icon-picker-grid"></div>
+              <input type="hidden" id="new-ex-icon" value="dumbbell">
+            </div>
+
+            <button type="submit" class="btn-primary">Hinzufügen</button>
+          </form>
+        </section>
+
+        <section class="settings-section">
+          <h3>Übungen verwalten</h3>
+          <ul id="settings-exercise-list" class="settings-list"></ul>
+        </section>
+
+        <section class="settings-section">
+          <h3>Daten</h3>
+          <button id="btn-export" class="btn-secondary">Backup exportieren (JSON)</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="icons-exercises.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
