@@ -29,6 +29,7 @@ html, body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  overflow-x: hidden;
 }
 
 body {
@@ -73,9 +74,10 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
   font-size: 24px;
   cursor: pointer;
   border-radius: 50%;
+  transition: background 0.15s, transform 0.12s ease-out;
 }
 
-.icon-btn:active { background: var(--bg-elev-2); }
+.icon-btn:active { background: var(--bg-elev-2); transform: scale(0.9); }
 
 /* ---------- Home / Groups ---------- */
 
@@ -176,14 +178,18 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
   flex-direction: column;
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
-  animation: slide-up 0.2s ease-out;
+  transform: translateX(0);
+  transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
 }
 
-.modal.hidden { display: none; }
-
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+/* Versteckt = nach rechts rausgeschoben → gleitet wie eine Seite rein/raus */
+.modal.hidden {
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.34s cubic-bezier(0.22, 0.61, 0.36, 1),
+              visibility 0s linear 0.34s;
 }
 
 .modal-content {
@@ -289,7 +295,7 @@ select {
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.1s;
+  transition: opacity 0.1s, transform 0.1s ease-out;
 }
 
 .btn-primary {
@@ -303,7 +309,7 @@ select {
   border: 1px solid var(--border);
 }
 
-.btn-primary:active, .btn-secondary:active { opacity: 0.7; }
+.btn-primary:active, .btn-secondary:active { opacity: 0.85; transform: scale(0.98); }
 
 /* ---------- History ---------- */
 
@@ -487,6 +493,16 @@ select {
   animation: history-slide-in 0.3s ease-out;
 }
 
+/* Gestaffeltes Einblenden der Übungsliste (nur beim ersten Aufbau) */
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.exercise-row.row-in {
+  animation: row-in 0.34s ease-out both;
+}
+
 /* ---------- Settings icon picker ---------- */
 
 .icon-picker {
@@ -644,8 +660,10 @@ select {
   .svg-icon-large .anim-part,
   #weight-current.weight-flash,
   .history-list li.new,
+  .exercise-row.row-in,
   .modal {
     animation: none !important;
   }
+  .modal, .modal.hidden { transition: none !important; }
   .exercise-row:active { transform: none; }
 }

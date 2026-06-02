@@ -162,8 +162,11 @@ function groupBy(arr, keyFn) {
 
 // ---------- Render: Home ----------
 
+let homeIntroDone = false;
+
 function renderHome() {
   const exercises = getExercises();
+  let introIndex = 0;
   for (const group of ['upper', 'lower']) {
     const container = document.querySelector(`[data-categories="${group}"]`);
     container.innerHTML = '';
@@ -188,6 +191,10 @@ function renderHome() {
         const li = document.createElement('li');
         li.className = 'exercise-row';
         if (latest) li.classList.add('has-weight');
+        if (!homeIntroDone) {
+          li.classList.add('row-in');
+          li.style.animationDelay = (introIndex++ * 0.04) + 's';
+        }
         li.dataset.id = ex.id;
         li.innerHTML = `
           ${iconHTML(ex, 'svg-icon')}
@@ -202,6 +209,7 @@ function renderHome() {
       container.appendChild(catEl);
     }
   }
+  homeIntroDone = true;
 }
 
 function escapeHTML(s) {
