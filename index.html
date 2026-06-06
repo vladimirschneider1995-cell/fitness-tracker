@@ -75,6 +75,8 @@
           <button type="submit" class="btn-primary">Speichern</button>
         </form>
 
+        <div id="spark-slot"></div>
+
         <section class="history">
           <h3>Verlauf</h3>
           <ul id="history-list" class="history-list"></ul>
@@ -122,6 +124,15 @@
         <section class="settings-section">
           <h3>Übungen verwalten</h3>
           <ul id="settings-exercise-list" class="settings-list"></ul>
+        </section>
+
+        <section class="settings-section">
+          <h3>Darstellung</h3>
+          <div class="theme-toggle" id="theme-toggle" role="group" aria-label="Farbschema">
+            <button type="button" data-theme-choice="auto">Automatisch</button>
+            <button type="button" data-theme-choice="light">Hell</button>
+            <button type="button" data-theme-choice="dark">Dunkel</button>
+          </div>
         </section>
 
         <section class="settings-section">

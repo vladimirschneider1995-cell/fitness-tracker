@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'fitness-v5';
+const CACHE_NAME = 'fitness-v6';
 const ASSETS = [
   './',
   './index.html',

@@ -231,8 +231,8 @@ function openExercise(id) {
   currentExerciseId = id;
   document.getElementById('modal-title').textContent = ex.name;
   document.getElementById('modal-icon-slot').innerHTML = iconHTML(ex, 'svg-icon-large');
-  renderExerciseDetail();
   showModal('modal-exercise');
+  renderExerciseDetail(); // nach showModal: Sparkline kann die echte Breite messen
   // Pre-fill input with latest weight for easy re-entry
   const latest = latestLog(id);
   const input = document.getElementById('input-weight');
@@ -243,6 +243,7 @@ function openExercise(id) {
 function renderExerciseDetail(opts = {}) {
   const latest = latestLog(currentExerciseId);
   document.getElementById('weight-current').textContent = latest ? fmtWeight(latest.weight) : '—';
+  renderSparkline();
 
   const history = historyFor(currentExerciseId, 5);
   const ul = document.getElementById('history-list');
@@ -294,6 +295,7 @@ function openSettings() {
   renderSettings();
   renderBandPicker();
   renderIconPicker();
+  renderThemeToggle();
   showModal('modal-settings');
 }
 
@@ -487,6 +489,108 @@ document.querySelectorAll('[data-close]').forEach(btn => {
 
 document.getElementById('btn-settings').addEventListener('click', openSettings);
 
+// ---------- Theme (Hell / Dunkel / Automatisch) ----------
+
+const STORAGE_THEME = 'fitness_theme';
+
+function getTheme() {
+  return localStorage.getItem(STORAGE_THEME) || 'auto';
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'light' || theme === 'dark') {
+    root.setAttribute('data-theme', theme);
+  } else {
+    root.removeAttribute('data-theme'); // 'auto' → folgt dem System (CSS @media)
+  }
+  updateThemeColorMeta();
+}
+
+function setTheme(theme) {
+  localStorage.setItem(STORAGE_THEME, theme);
+  applyTheme(theme);
+  renderThemeToggle();
+}
+
+// Statusleisten-Farbe an den tatsächlich gerenderten Hintergrund angleichen
+function updateThemeColorMeta() {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta && bg) meta.setAttribute('content', bg);
+}
+
+function renderThemeToggle() {
+  const current = getTheme();
+  document.querySelectorAll('#theme-toggle button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeChoice === current);
+  });
+}
+
+document.getElementById('theme-toggle').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-theme-choice]');
+  if (!btn) return;
+  setTheme(btn.dataset.themeChoice);
+});
+
+// Bei Systemwechsel im Auto-Modus die Statusleiste nachziehen
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+  if (getTheme() === 'auto') updateThemeColorMeta();
+});
+
+// ---------- Verlaufs-Kurve (Sparkline) ----------
+
+function renderSparkline() {
+  const slot = document.getElementById('spark-slot');
+  const logs = getLogs()
+    .filter(l => l.exerciseId === currentExerciseId)
+    .sort((a, b) => (a.ts < b.ts ? -1 : 1)); // chronologisch alt → neu
+  const recent = logs.slice(-12);
+  if (recent.length < 2) { slot.innerHTML = ''; return; }
+
+  const weights = recent.map(l => l.weight);
+  const min = Math.min(...weights), max = Math.max(...weights);
+  const range = max - min || 1;
+  const W = Math.max(slot.clientWidth || 300, 200);
+  const H = 56, pad = 8;
+  const n = weights.length;
+  const xi = i => (i / (n - 1)) * W;
+  const yi = w => H - pad - ((w - min) / range) * (H - 2 * pad);
+  const pts = weights.map((w, i) => [xi(i), yi(w)]);
+  const linePts = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const areaD = `M ${pts[0][0].toFixed(1)},${H} ` +
+    pts.map(p => `L ${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ') +
+    ` L ${pts[n - 1][0].toFixed(1)},${H} Z`;
+  const last = pts[n - 1];
+  const delta = weights[n - 1] - weights[0];
+  const arrow = delta > 0 ? '↑ +' : (delta < 0 ? '↓ −' : '± ');
+  const deltaTxt = arrow + fmtWeight(Math.abs(delta)) + ' kg';
+
+  slot.innerHTML = `
+    <div class="spark">
+      <div class="spark-head">
+        <span class="spark-title">Verlauf · letzte ${n}</span>
+        <span class="spark-delta ${delta > 0 ? 'up' : ''}">${deltaTxt}</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+        <defs>
+          <linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop class="spark-grad-top" offset="0"/>
+            <stop class="spark-grad-bottom" offset="1"/>
+          </linearGradient>
+        </defs>
+        <path class="spark-fill" fill="url(#spark-grad)" d="${areaD}"/>
+        <polyline class="spark-line draw" points="${linePts}"/>
+        <circle class="spark-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5"/>
+      </svg>
+    </div>`;
+
+  const line = slot.querySelector('.spark-line');
+  if (line && line.getTotalLength) {
+    line.style.setProperty('--spark-len', line.getTotalLength());
+  }
+}
+
 // ---------- Service Worker ----------
 
 if ('serviceWorker' in navigator) {
@@ -498,6 +602,7 @@ if ('serviceWorker' in navigator) {
 
 // ---------- Init ----------
 
+applyTheme(getTheme());
 seedIfEmpty();
 migrateIconIds();
 renderHome();

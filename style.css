@@ -1,17 +1,51 @@
 :root {
-  --bg: #0f0f10;
-  --bg-elev: #1a1a1c;
-  --bg-elev-2: #232326;
-  --text: #f5f5f7;
-  --text-dim: #9a9a9f;
-  --accent: #ff9f0a;
-  --accent-text: #111;
-  --border: #2c2c30;
-  --danger: #ff453a;
+  /* Layout (theme-unabhängig) */
   --radius: 14px;
   --tap-min: 56px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* ---- Dunkel (Standard) · warmer Anthropic-Ton ---- */
+  color-scheme: dark;
+  --bg: #14110d;
+  --bg-elev: #1f1a15;
+  --bg-elev-2: #2b241d;
+  --text: #f3eee6;
+  --text-dim: #a89e8f;
+  --accent: #fb8c5a;
+  --accent-text: #1a120c;
+  --border: #322a22;
+  --danger: #ff6f61;
+}
+
+/* ---- Hell · cremiges Off-White (Anthropic) ----
+   Gilt bei System-Hell (außer manuell „Dunkel" gewählt) und immer bei manuell „Hell".
+   Beide Blöcke halten dieselben Werte — bei Änderungen beide anpassen. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f6f3ec;
+    --bg-elev: #fffdf8;
+    --bg-elev-2: #ece7dc;
+    --text: #2a2620;
+    --text-dim: #6f685d;
+    --accent: #bf4f22;
+    --accent-text: #fffdf8;
+    --border: #e3ddd0;
+    --danger: #c0392b;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f3ec;
+  --bg-elev: #fffdf8;
+  --bg-elev-2: #ece7dc;
+  --text: #2a2620;
+  --text-dim: #6f685d;
+  --accent: #bf4f22;
+  --accent-text: #fffdf8;
+  --border: #e3ddd0;
+  --danger: #c0392b;
 }
 
 * {
@@ -480,6 +514,12 @@ select {
 [data-band="schwarz"] { --band-color: #c7c7cc; }
 [data-band="rot"]     { --band-color: #ff453a; }
 
+/* Im Hellmodus muss „schwarz" dunkel sein — Silber wäre auf Creme unsichtbar. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) [data-band="schwarz"] { --band-color: #4a443c; }
+}
+:root[data-theme="light"] [data-band="schwarz"] { --band-color: #4a443c; }
+
 /* Band-Strang nimmt die Bandfarbe (sonst currentColor wie der Rest des Icons) */
 .band-strand { stroke: var(--band-color, currentColor); }
 
@@ -781,6 +821,96 @@ select {
   50% { transform: scaleX(1.14); }
 }
 
+/* ---------- Theme-Umschalter (Segmented Control) ---------- */
+
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+.theme-toggle button {
+  flex: 1;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s, transform 0.1s ease-out;
+}
+
+.theme-toggle button.active {
+  background: var(--bg-elev-2);
+  color: var(--accent);
+}
+
+.theme-toggle button:active { transform: scale(0.97); }
+
+/* ---------- Verlaufs-Kurve (Sparkline) ---------- */
+
+.spark {
+  margin: 8px 0 24px;
+  padding: 16px 16px 14px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.spark-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.spark-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.spark-delta {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+.spark-delta.up { color: var(--accent); }
+
+.spark svg { width: 100%; height: 56px; display: block; overflow: visible; }
+
+.spark-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.spark-grad-top { stop-color: var(--accent); stop-opacity: 0.28; }
+.spark-grad-bottom { stop-color: var(--accent); stop-opacity: 0; }
+.spark-dot { fill: var(--accent); }
+
+@keyframes spark-draw {
+  from { stroke-dashoffset: var(--spark-len); }
+  to   { stroke-dashoffset: 0; }
+}
+.spark-line.draw {
+  stroke-dasharray: var(--spark-len);
+  animation: spark-draw 0.7s ease-out both;
+}
+
 /* ---------- Reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -788,9 +918,11 @@ select {
   #weight-current.weight-flash,
   .history-list li.new,
   .exercise-row.row-in,
+  .spark-line.draw,
   .modal {
     animation: none !important;
   }
+  .spark-line.draw { stroke-dasharray: none; }
   .modal, .modal.hidden { transition: none !important; }
   .exercise-row:active { transform: none; }
 }

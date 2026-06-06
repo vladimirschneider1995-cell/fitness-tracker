@@ -83,7 +83,7 @@ git push
 GitHub Pages baut dann automatisch neu (~1 Min). Fertig.
 
 **Wichtig bei Datei-Änderungen:** Wenn sich Code ändert, sollte in `service-worker.js` die Zeile
-`const CACHE_NAME = 'fitness-v4'` (aktueller Stand) hochgezählt werden (`v5`, `v6`, …), sonst zeigt das Handy evtl. die alte Version.
+`const CACHE_NAME = 'fitness-v6'` (aktueller Stand) hochgezählt werden (`v7`, `v8`, …), sonst zeigt das Handy evtl. die alte Version.
 Claude denkt normalerweise daran — falls die App nach einem Update „alt" aussieht, ist das fast immer die Ursache.
 
 ---
@@ -115,12 +115,14 @@ Homescreen entfernst, sind sie weg.
 - ✅ Sicherheits-Check + Härtung — keine API-Keys/Secrets im Code, CSP-Schutz, nicht bei Google auffindbar (noindex)
 - ✅ Geräte-Icons komplett neu im feinen, detaillierten Linien-Stil
 - ✅ Mehr Leben: Seiten-Slides beim Menüwechsel, gestaffeltes Einblenden, „Morph" beim Öffnen einer Übung, Tipp-Feedback
+- ✅ Neue Übungs-Icons: Liegestütze, Ausfallschritte, 3 Klimmzug-Varianten (breit/parallel/Untergriff), 5 Resistance-Band-Übungen — mit **wählbarer Bandfarbe** (grün/lila/blau/schwarz/rot), bei Klimmzügen optional
+- ✅ **Heller Modus + Automatik** (folgt dem iPhone), umschaltbar unter Einstellungen → Darstellung; wärmerer „Anthropic"-Farbton (Koralle im Dunkeln, Terrakotta im Hellen)
+- ✅ **Verlaufs-Kurve** pro Übung über der Verlaufsliste (edle Mini-Kurve mit Verlauf-Fill, ab 2 Einträgen)
 
 **Als Nächstes / offene Ideen:**
-- Heller „Tag-Modus" zum Umschalten (dunkel bleibt Standard)
-- Kleines, cleanes **Verlaufs-Diagramm pro Übung** (dort wo man das Gewicht einträgt) — Kurve mit leichtem Verlauf/Schatten-Fill, soll edel aussehen & in die App passen
 - **Mehr Geräte-Icons** für weitere Maschinen ergänzen (Vladimir benennt die Übungen selbst; das Icon soll das jeweilige Gerät abbilden)
 - Übungen für Brust und Arme ergänzen
+- Bandfarbe einer **bestehenden** Übung nachträglich ändern (geht aktuell nur beim Neu-Anlegen)
 - Optional: Wiederholungen/Sätze zusätzlich zum Gewicht (macht die App etwas weniger minimal)
 
 Schreib einfach in einem neuen Chat, was davon (oder was ganz anderes) du willst.
