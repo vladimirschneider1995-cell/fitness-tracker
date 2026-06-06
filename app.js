@@ -54,15 +54,18 @@ function seedIfEmpty() {
   }
 }
 
-function addExercise(name, group, category, iconId) {
+function addExercise(name, group, category, iconId, bandColor) {
   const exercises = getExercises();
   const id = slugify(name) + '-' + Date.now().toString(36);
+  const resolvedIcon = iconId && EXERCISE_ICONS[iconId] ? iconId : 'dumbbell';
   exercises.push({
     id,
     name: name.trim(),
     group,
     category: category.trim(),
-    iconId: iconId && EXERCISE_ICONS[iconId] ? iconId : 'dumbbell',
+    iconId: resolvedIcon,
+    // Bandfarbe nur speichern, wenn das Icon band-fähig ist und eine Farbe gewählt wurde.
+    bandColor: (bandColor && iconIsBandCapable(resolvedIcon)) ? bandColor : null,
   });
   saveJSON(STORAGE_EXERCISES, exercises);
   return id;
@@ -289,6 +292,7 @@ document.getElementById('form-weight').addEventListener('submit', e => {
 
 function openSettings() {
   renderSettings();
+  renderBandPicker();
   renderIconPicker();
   showModal('modal-settings');
 }
@@ -296,6 +300,7 @@ function openSettings() {
 function renderIconPicker() {
   const grid = document.getElementById('icon-picker-grid');
   const hidden = document.getElementById('new-ex-icon');
+  const bandHidden = document.getElementById('new-ex-band');
   const current = hidden.value || 'dumbbell';
   grid.innerHTML = '';
   for (const opt of AVAILABLE_ICONS) {
@@ -305,13 +310,71 @@ function renderIconPicker() {
     cell.dataset.iconId = opt.id;
     cell.setAttribute('aria-label', opt.label);
     cell.title = opt.label;
-    cell.innerHTML = `<div class="svg-icon" data-icon-id="${opt.id}">${EXERCISE_ICONS[opt.id]}</div>`;
+    // Live-Vorschau der Bandfarbe nur am aktuell gewählten band-fähigen Icon.
+    const showBand = opt.band && opt.id === current && bandHidden.value;
+    const band = showBand ? ` data-band="${bandHidden.value}"` : '';
+    cell.innerHTML = `<div class="svg-icon" data-icon-id="${opt.id}"${band}>${EXERCISE_ICONS[opt.id]}</div>`;
     cell.addEventListener('click', () => {
       hidden.value = opt.id;
       grid.querySelectorAll('.icon-picker-cell.selected').forEach(el => el.classList.remove('selected'));
       cell.classList.add('selected');
+      updateBandPickerVisibility(opt.id);
     });
     grid.appendChild(cell);
+  }
+  updateBandPickerVisibility(current);
+}
+
+// Band-Farb-Picker: „Kein Band" + 5 Farb-Swatches (nur sichtbar bei band-fähigem Icon).
+
+function renderBandPicker() {
+  const wrap = document.getElementById('band-swatches');
+  const bandHidden = document.getElementById('new-ex-band');
+  wrap.innerHTML = '';
+
+  const none = document.createElement('button');
+  none.type = 'button';
+  none.className = 'band-swatch none' + (bandHidden.value ? '' : ' selected');
+  none.dataset.band = '';
+  none.setAttribute('aria-label', 'Kein Band');
+  none.title = 'Kein Band';
+  none.addEventListener('click', () => selectBand(''));
+  wrap.appendChild(none);
+
+  for (const c of BAND_COLORS) {
+    const sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'band-swatch' + (bandHidden.value === c.id ? ' selected' : '');
+    sw.dataset.band = c.id;
+    sw.style.background = c.css;
+    sw.setAttribute('aria-label', c.label);
+    sw.title = c.label;
+    sw.addEventListener('click', () => selectBand(c.id));
+    wrap.appendChild(sw);
+  }
+}
+
+function selectBand(bandId) {
+  document.getElementById('new-ex-band').value = bandId;
+  syncBandSwatchSelection(bandId);
+  // Live-Vorschau: ausgewähltes Icon im Raster nimmt die Bandfarbe an.
+  renderIconPicker();
+}
+
+function syncBandSwatchSelection(bandId) {
+  document.querySelectorAll('#band-swatches .band-swatch').forEach(el => {
+    el.classList.toggle('selected', (el.dataset.band || '') === bandId);
+  });
+}
+
+function updateBandPickerVisibility(iconId) {
+  const picker = document.getElementById('band-picker');
+  if (iconIsBandCapable(iconId)) {
+    picker.classList.remove('hidden');
+  } else {
+    picker.classList.add('hidden');
+    document.getElementById('new-ex-band').value = '';
+    syncBandSwatchSelection('');
   }
 }
 
@@ -374,12 +437,15 @@ document.getElementById('form-new-exercise').addEventListener('submit', e => {
   const group = document.getElementById('new-ex-group').value;
   const category = document.getElementById('new-ex-category').value.trim();
   const iconId = document.getElementById('new-ex-icon').value || 'dumbbell';
+  const bandColor = document.getElementById('new-ex-band').value;
   if (!name || !category) return;
-  addExercise(name, group, category, iconId);
+  addExercise(name, group, category, iconId, bandColor);
   document.getElementById('new-ex-name').value = '';
   document.getElementById('new-ex-category').value = '';
   document.getElementById('new-ex-icon').value = 'dumbbell';
+  document.getElementById('new-ex-band').value = '';
   renderSettings();
+  renderBandPicker();
   renderIconPicker();
   renderHome();
 });

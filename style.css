@@ -470,6 +470,23 @@ select {
   height: 32px;
 }
 
+/* ---------- Band-Farben ---------- */
+
+/* Bandfarbe der Übung (data-band am Icon-Container) → CSS-Variable.
+   „schwarz" hell gerendert, sonst auf dem dunklen Grund unsichtbar. */
+[data-band="gruen"]   { --band-color: #34c759; }
+[data-band="lila"]    { --band-color: #bf5af2; }
+[data-band="blau"]    { --band-color: #0a84ff; }
+[data-band="schwarz"] { --band-color: #c7c7cc; }
+[data-band="rot"]     { --band-color: #ff453a; }
+
+/* Band-Strang nimmt die Bandfarbe (sonst currentColor wie der Rest des Icons) */
+.band-strand { stroke: var(--band-color, currentColor); }
+
+/* Optionale Band-Elemente (Klimmzug-Schlaufe): nur sichtbar, wenn eine Farbe gewählt ist */
+.band-optional { display: none; }
+[data-band] .band-optional { display: inline; }
+
 /* ---------- Polish animations ---------- */
 
 @keyframes weight-flash {
@@ -552,6 +569,61 @@ select {
   width: 40px;
   height: 40px;
   color: inherit;
+}
+
+/* ---------- Band-Farb-Picker (nur bei band-fähigen Icons) ---------- */
+
+.band-picker { margin-top: 10px; }
+.band-picker.hidden { display: none; }
+
+.band-picker-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 4px 0 6px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.band-swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--bg-elev);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.band-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform 0.12s ease-out, border-color 0.15s;
+}
+
+.band-swatch:active { transform: scale(0.9); }
+
+.band-swatch.selected {
+  border-color: var(--text);
+  transform: scale(1.14);
+}
+
+/* „Kein Band" = neutraler Kreis mit diagonalem Strich */
+.band-swatch.none { background: var(--bg-elev-2); }
+.band-swatch.none::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 2px;
+  background: var(--text-dim);
+  transform: rotate(-45deg);
 }
 
 /* ---------- Per-icon loop animations (only in detail modal) ---------- */
@@ -652,6 +724,61 @@ select {
 @keyframes kf-shrugs {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
+}
+
+/* Eigengewicht + Klimmzüge + Band-Übungen */
+
+.svg-icon-large[data-icon-id="liegestuetze"] .anim-part { animation-name: kf-liegestuetze; }
+@keyframes kf-liegestuetze {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+.svg-icon-large[data-icon-id="ausfallschritte"] .anim-part { animation-name: kf-ausfallschritte; }
+@keyframes kf-ausfallschritte {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3.5px); }
+}
+
+.svg-icon-large[data-icon-id="klimmzug-breit"] .anim-part,
+.svg-icon-large[data-icon-id="klimmzug-neutral"] .anim-part,
+.svg-icon-large[data-icon-id="klimmzug-untergriff"] .anim-part { animation-name: kf-klimmzug; }
+@keyframes kf-klimmzug {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.svg-icon-large[data-icon-id="band-curl"] .anim-part { animation-name: kf-band-curl; }
+@keyframes kf-band-curl {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.svg-icon-large[data-icon-id="band-press"] .anim-part { animation-name: kf-band-press; }
+@keyframes kf-band-press {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.svg-icon-large[data-icon-id="band-row"] .anim-part { animation-name: kf-band-row; }
+@keyframes kf-band-row {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+.svg-icon-large[data-icon-id="band-squat"] .anim-part { animation-name: kf-band-squat; }
+@keyframes kf-band-squat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+.svg-icon-large[data-icon-id="band-pull-apart"] .anim-part {
+  transform-origin: 32px 27px;
+  animation-name: kf-band-pull-apart;
+}
+@keyframes kf-band-pull-apart {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.14); }
 }
 
 /* ---------- Reduced motion ---------- */

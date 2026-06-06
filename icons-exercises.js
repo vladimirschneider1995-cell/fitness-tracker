@@ -6,6 +6,10 @@
 
 const LINE = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
 
+// Band-Stränge tragen die Klasse .band-strand; ihre Farbe kommt aus --band-color
+// (gesetzt über data-band am Container, siehe style.css), Fallback currentColor.
+const BAND = 'class="band-strand"';
+
 const EXERCISE_ICONS = {
 
   'dumbbell': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
@@ -218,6 +222,181 @@ const EXERCISE_ICONS = {
       <circle cx="44" cy="46" r="4.5"/>
     </g>
   </svg>`,
+
+  // ---- Eigengewicht ----
+
+  'liegestuetze': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line x1="6" y1="51" x2="58" y2="51"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="13" cy="27" r="4.5"/>
+      <line x1="17" y1="29" x2="40" y2="34"/>
+      <line x1="40" y1="34" x2="53" y2="49"/>
+      <line x1="19" y1="30" x2="22" y2="50"/>
+    </g>
+  </svg>`,
+
+  'ausfallschritte': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line x1="6" y1="54" x2="58" y2="54"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="33" cy="12" r="4.5"/>
+      <line x1="33" y1="16.5" x2="33" y2="34"/>
+      <line x1="33" y1="34" x2="44" y2="42"/>
+      <line x1="44" y1="42" x2="44" y2="53"/>
+      <line x1="33" y1="34" x2="22" y2="46"/>
+      <line x1="22" y1="46" x2="14" y2="53"/>
+      <line x1="33" y1="21" x2="38" y2="32"/>
+    </g>
+  </svg>`,
+
+  // ---- Klimmzüge (band-fähig: Schlaufe als .band-optional) ----
+
+  'klimmzug-breit': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line x1="8" y1="11" x2="56" y2="11"/>
+      <line x1="12" y1="6" x2="12" y2="11"/>
+      <line x1="52" y1="6" x2="52" y2="11"/>
+      <path d="M15 11 Q18 6.5 21 11"/>
+      <path d="M43 11 Q46 6.5 49 11"/>
+      <line x1="18" y1="11" x2="28" y2="29"/>
+      <line x1="46" y1="11" x2="36" y2="29"/>
+      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="32" cy="31" r="4.5"/>
+      <line x1="32" y1="35" x2="32" y2="46"/>
+      <line x1="32" y1="46" x2="27" y2="55"/>
+      <line x1="32" y1="46" x2="37" y2="55"/>
+    </g>
+  </svg>`,
+
+  'klimmzug-neutral': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line x1="8" y1="11" x2="56" y2="11"/>
+      <line x1="12" y1="6" x2="12" y2="11"/>
+      <line x1="52" y1="6" x2="52" y2="11"/>
+      <line x1="27" y1="11" x2="27" y2="17"/>
+      <line x1="37" y1="11" x2="37" y2="17"/>
+      <line x1="24" y1="15" x2="30" y2="15"/>
+      <line x1="34" y1="15" x2="40" y2="15"/>
+      <line x1="27" y1="16" x2="29" y2="29"/>
+      <line x1="37" y1="16" x2="35" y2="29"/>
+      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="32" cy="31" r="4.5"/>
+      <line x1="32" y1="35" x2="32" y2="46"/>
+      <line x1="32" y1="46" x2="27" y2="55"/>
+      <line x1="32" y1="46" x2="37" y2="55"/>
+    </g>
+  </svg>`,
+
+  'klimmzug-untergriff': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line x1="8" y1="11" x2="56" y2="11"/>
+      <line x1="12" y1="6" x2="12" y2="11"/>
+      <line x1="52" y1="6" x2="52" y2="11"/>
+      <path d="M25 11 Q28.5 15.5 32 11"/>
+      <path d="M32 11 Q35.5 15.5 39 11"/>
+      <line x1="29" y1="13" x2="30" y2="29"/>
+      <line x1="35" y1="13" x2="34" y2="29"/>
+      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="32" cy="31" r="4.5"/>
+      <line x1="32" y1="35" x2="32" y2="46"/>
+      <line x1="32" y1="46" x2="27" y2="55"/>
+      <line x1="32" y1="46" x2="37" y2="55"/>
+    </g>
+  </svg>`,
+
+  // ---- Resistance-Band (Band = farbiger Kern via ${BAND}) ----
+
+  'band-curl': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <circle cx="32" cy="11" r="4.5"/>
+      <line x1="32" y1="15.5" x2="32" y2="35"/>
+      <line x1="32" y1="35" x2="25" y2="54"/>
+      <line x1="32" y1="35" x2="39" y2="54"/>
+      <line x1="32" y1="20" x2="24" y2="33"/>
+      <line x1="32" y1="20" x2="40" y2="33"/>
+      <line ${BAND} x1="25" y1="53" x2="26" y2="25"/>
+      <line ${BAND} x1="39" y1="53" x2="38" y2="25"/>
+    </g>
+    <g class="anim-part">
+      <line x1="24" y1="33" x2="26" y2="25"/>
+      <line x1="40" y1="33" x2="38" y2="25"/>
+    </g>
+  </svg>`,
+
+  'band-press': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <circle cx="32" cy="15" r="4.5"/>
+      <line x1="32" y1="19.5" x2="32" y2="37"/>
+      <line x1="32" y1="37" x2="26" y2="54"/>
+      <line x1="32" y1="37" x2="38" y2="54"/>
+      <line ${BAND} x1="26" y1="53" x2="24" y2="13"/>
+      <line ${BAND} x1="38" y1="53" x2="40" y2="13"/>
+    </g>
+    <g class="anim-part">
+      <line x1="32" y1="21" x2="24" y2="13"/>
+      <line x1="32" y1="21" x2="40" y2="13"/>
+      <line x1="20" y1="13" x2="28" y2="13"/>
+      <line x1="36" y1="13" x2="44" y2="13"/>
+    </g>
+  </svg>`,
+
+  'band-row': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <circle cx="36" cy="14" r="4.5"/>
+      <line x1="36" y1="18.5" x2="36" y2="37"/>
+      <line x1="36" y1="37" x2="31" y2="54"/>
+      <line x1="36" y1="37" x2="41" y2="54"/>
+      <line x1="36" y1="22" x2="30" y2="30"/>
+      <line x1="9" y1="18" x2="9" y2="42"/>
+      <line ${BAND} x1="9" y1="30" x2="22" y2="30"/>
+    </g>
+    <g class="anim-part">
+      <line x1="30" y1="30" x2="21" y2="30"/>
+      <line x1="21" y1="27" x2="21" y2="33"/>
+    </g>
+  </svg>`,
+
+  'band-squat': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <line ${BAND} x1="22" y1="53" x2="26" y2="24"/>
+      <line ${BAND} x1="42" y1="53" x2="38" y2="24"/>
+    </g>
+    <g class="anim-part">
+      <circle cx="32" cy="15" r="4.5"/>
+      <line x1="32" y1="19.5" x2="32" y2="33"/>
+      <line x1="32" y1="33" x2="24" y2="40"/>
+      <line x1="24" y1="40" x2="22" y2="53"/>
+      <line x1="32" y1="33" x2="40" y2="40"/>
+      <line x1="40" y1="40" x2="42" y2="53"/>
+      <line x1="32" y1="22" x2="26" y2="24"/>
+      <line x1="32" y1="22" x2="38" y2="24"/>
+    </g>
+  </svg>`,
+
+  'band-pull-apart': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
+    <g class="frame">
+      <circle cx="32" cy="13" r="4.5"/>
+      <line x1="32" y1="17.5" x2="32" y2="40"/>
+      <line x1="32" y1="40" x2="26" y2="54"/>
+      <line x1="32" y1="40" x2="38" y2="54"/>
+      <line x1="32" y1="23" x2="22" y2="27"/>
+      <line x1="32" y1="23" x2="42" y2="27"/>
+    </g>
+    <g class="anim-part">
+      <line x1="22" y1="27" x2="14" y2="27"/>
+      <line x1="42" y1="27" x2="50" y2="27"/>
+      <line ${BAND} x1="14" y1="27" x2="50" y2="27"/>
+    </g>
+  </svg>`,
 };
 
 // Liste für den Picker im Settings-Form
@@ -235,7 +414,33 @@ const AVAILABLE_ICONS = [
   { id: 'lat-pulldown',      label: 'Lat Pulldown' },
   { id: 'rudern-maschine',   label: 'Rudern' },
   { id: 'shrugs',            label: 'Shrugs' },
+
+  { id: 'liegestuetze',        label: 'Liegestütze' },
+  { id: 'ausfallschritte',     label: 'Ausfallschritte' },
+  { id: 'klimmzug-breit',      label: 'Klimmzug breit',        band: true },
+  { id: 'klimmzug-neutral',    label: 'Klimmzug parallel',     band: true },
+  { id: 'klimmzug-untergriff', label: 'Klimmzug Untergriff',   band: true },
+  { id: 'band-curl',           label: 'Band Curl',             band: true },
+  { id: 'band-press',          label: 'Band Drücken',          band: true },
+  { id: 'band-row',            label: 'Band Rudern',           band: true },
+  { id: 'band-squat',          label: 'Band Kniebeuge',        band: true },
+  { id: 'band-pull-apart',     label: 'Band Auseinanderziehen', band: true },
 ];
+
+// Bandfarben (Active Vikings). „schwarz" wird hell gerendert — reines Schwarz
+// wäre auf dem dunklen Grund unsichtbar. Werte spiegeln sich in style.css wider.
+const BAND_COLORS = [
+  { id: 'gruen',   label: 'Grün',    css: '#34c759' },
+  { id: 'lila',    label: 'Lila',    css: '#bf5af2' },
+  { id: 'blau',    label: 'Blau',    css: '#0a84ff' },
+  { id: 'schwarz', label: 'Schwarz', css: '#c7c7cc' },
+  { id: 'rot',     label: 'Rot',     css: '#ff453a' },
+];
+
+function iconIsBandCapable(iconId) {
+  const opt = AVAILABLE_ICONS.find(o => o.id === iconId);
+  return !!(opt && opt.band);
+}
 
 function iconIdFor(exercise) {
   if (exercise.iconId && EXERCISE_ICONS[exercise.iconId]) return exercise.iconId;
@@ -245,5 +450,8 @@ function iconIdFor(exercise) {
 
 function iconHTML(exercise, sizeClass) {
   const id = iconIdFor(exercise);
-  return `<div class="${sizeClass}" data-icon-id="${id}">${EXERCISE_ICONS[id]}</div>`;
+  // Bandfarbe nur anhängen, wenn gesetzt UND das Icon band-fähig ist.
+  const band = (exercise.bandColor && iconIsBandCapable(id))
+    ? ` data-band="${exercise.bandColor}"` : '';
+  return `<div class="${sizeClass}" data-icon-id="${id}"${band}>${EXERCISE_ICONS[id]}</div>`;
 }
