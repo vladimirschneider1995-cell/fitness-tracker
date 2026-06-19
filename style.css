@@ -13,9 +13,20 @@
   --text: #f3eee6;
   --text-dim: #a89e8f;
   --accent: #fb8c5a;
+  --accent-hi: #ffb184;
   --accent-text: #1a120c;
   --border: #322a22;
   --danger: #ff6f61;
+
+  /* Körperkarte / Muskel-Schattierung */
+  --muscle-hi: #3a3128;
+  --muscle-lo: #241e18;
+  --muscle-seam: #4a4036;
+  --body-base: #211b15;
+
+  /* Anatomie-Linien (Vintage-Tusche auf dunkel) */
+  --ink: #e3d2b0;
+  --ink-dim: #a98f63;
 }
 
 /* ---- Hell · cremiges Off-White (Anthropic) ----
@@ -30,9 +41,16 @@
     --text: #2a2620;
     --text-dim: #6f685d;
     --accent: #bf4f22;
+    --accent-hi: #d8703f;
     --accent-text: #fffdf8;
     --border: #e3ddd0;
     --danger: #c0392b;
+    --muscle-hi: #e9e2d4;
+    --muscle-lo: #d6ccba;
+    --muscle-seam: #c5bba7;
+    --body-base: #e0d8c8;
+    --ink: #4a3a24;
+    --ink-dim: #7d6a4a;
   }
 }
 :root[data-theme="light"] {
@@ -43,9 +61,16 @@
   --text: #2a2620;
   --text-dim: #6f685d;
   --accent: #bf4f22;
+  --accent-hi: #d8703f;
   --accent-text: #fffdf8;
   --border: #e3ddd0;
   --danger: #c0392b;
+  --muscle-hi: #e9e2d4;
+  --muscle-lo: #d6ccba;
+  --muscle-seam: #c5bba7;
+  --body-base: #e0d8c8;
+  --ink: #4a3a24;
+  --ink-dim: #7d6a4a;
 }
 
 * {
@@ -200,6 +225,161 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
   color: var(--text-dim);
   font-size: 15px;
 }
+
+/* ---------- Körperkarte ---------- */
+
+.bodymap {
+  margin-top: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bodymap-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.bodymap-toggle button {
+  min-height: 38px;
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.1s ease-out;
+}
+
+.bodymap-toggle button.active { background: var(--bg-elev-2); color: var(--accent); }
+.bodymap-toggle button:active { transform: scale(0.97); }
+
+.bodymap-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.body-svg {
+  width: auto;
+  height: 44vh;
+  max-height: 380px;
+  display: block;
+}
+
+.body-svg .body-base { fill: none; }
+
+/* Hauptkontur (kräftige Tusche) */
+.body-svg .body-outline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Anatomie-Detail (feine Tusche, nicht klickbar) */
+.body-svg .body-detail {
+  fill: none;
+  stroke: var(--ink-dim);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.body-svg .muscle-region { cursor: pointer; }
+/* Klickbare Muskeln: als Linie Teil der Zeichnung, Fläche transparent (fängt Klicks) */
+.body-svg .muscle-region path {
+  fill: transparent;
+  stroke: var(--ink-dim);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  transition: fill 0.18s ease;
+}
+
+.body-svg .muscle-region:hover path,
+.body-svg .muscle-region:focus-visible path {
+  fill: var(--accent-hi);
+  fill-opacity: 0.38;
+}
+
+.body-svg .muscle-region.active path {
+  fill: var(--accent);
+  fill-opacity: 0.6;
+  stroke: var(--accent);
+}
+
+.body-svg .muscle-region.empty { opacity: 0.45; cursor: default; }
+.body-svg .muscle-region.empty path { fill: transparent; }
+
+.body-svg .muscle-region:focus { outline: none; }
+
+.bodymap-hint {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+@keyframes body-flip {
+  0%   { transform: perspective(700px) rotateY(-90deg); opacity: 0; }
+  100% { transform: perspective(700px) rotateY(0deg); opacity: 1; }
+}
+.bodymap-slot.flip .body-svg {
+  animation: body-flip 0.42s ease;
+  transform-origin: center center;
+}
+
+/* Muskel-Filter-Leiste */
+
+.muscle-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 4px 0;
+}
+.muscle-filter-bar.hidden { display: none; }
+
+.filter-chip {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 7px 14px;
+  border-radius: 999px;
+}
+
+.filter-reset {
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.1s ease-out;
+}
+.filter-reset:active { transform: scale(0.97); }
+
+.group.hidden { display: none; }
 
 /* ---------- Modal ---------- */
 
@@ -491,13 +671,27 @@ select {
 .svg-icon-large {
   width: 120px;
   height: 120px;
-  color: var(--accent);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .svg-icon-large svg { width: 100%; height: 100%; display: block; }
+
+/* Zielmuskel-Hervorhebung in den Figuren-Icons (Akzentfüllung unter den Linien). */
+.muscle-hl { fill: var(--accent); stroke: none; }
+
+/* Anatomie-Icon: Zielmuskel pulsiert im Detail-Fenster („Muskel arbeitet") */
+@keyframes ico-hl-pulse {
+  0%, 100% { opacity: 0.95; transform: scale(1); }
+  50%      { opacity: 0.5;  transform: scale(1.05); }
+}
+.svg-icon-large .ico-hl {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ico-hl-pulse 1.8s ease-in-out infinite;
+}
 
 .settings-list li .svg-icon {
   width: 32px;
@@ -676,150 +870,80 @@ select {
   animation-timing-function: ease-in-out;
 }
 
-.svg-icon-large[data-icon-id="dumbbell"] .anim-part { animation-name: kf-dumbbell; }
-@keyframes kf-dumbbell {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-}
+/* Bewegungs-Keyframes nach Typ — mehrere Übungen teilen sich eine Bewegung. */
+@keyframes kf-press    { 0%,100% { transform: translateY(0); }  50% { transform: translateY(-3px); } }
+@keyframes kf-press-lg { 0%,100% { transform: translateY(0); }  50% { transform: translateY(-5px); } }
+@keyframes kf-down     { 0%,100% { transform: translateY(0); }  50% { transform: translateY(3px); } }
+@keyframes kf-rowx     { 0%,100% { transform: translateX(0); }  50% { transform: translateX(-6px); } }
+@keyframes kf-pull     { 0%,100% { transform: scaleX(1); }      50% { transform: scaleX(1.16); } }
+@keyframes kf-kneeext  { 0%,100% { transform: rotate(0deg); }   50% { transform: rotate(-32deg); } }
+@keyframes kf-kneecurl { 0%,100% { transform: rotate(0deg); }   50% { transform: rotate(-38deg); } }
+@keyframes kf-crunch   { 0%,100% { transform: rotate(0deg); }   50% { transform: rotate(16deg); } }
+@keyframes kf-lever    { 0%,100% { transform: rotate(0deg); }   50% { transform: rotate(-14deg); } }
+@keyframes kf-sweep    { 0%,100% { transform: rotate(0deg); }   50% { transform: rotate(-20deg); } }
+@keyframes kf-legpress { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-4px,-4px); } }
+@keyframes kf-pulse    { 0%,100% { transform: translateY(0); }  50% { transform: translateY(-2px); } }
 
-.svg-icon-large[data-icon-id="leg-extension"] .anim-part {
-  transform-origin: 32px 40px;
-  animation-name: kf-leg-extension;
-}
-@keyframes kf-leg-extension {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-40deg); }
-}
-
-.svg-icon-large[data-icon-id="leg-press"] .anim-part { animation-name: kf-leg-press; }
-@keyframes kf-leg-press {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-7px, 6px); }
-}
-
-.svg-icon-large[data-icon-id="beinbeuger"] .anim-part {
-  transform-origin: 56px 14px;
-  animation-name: kf-beinbeuger;
-}
-@keyframes kf-beinbeuger {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-25deg); }
-}
-
-.svg-icon-large[data-icon-id="wadenheben"] .anim-part { animation-name: kf-wadenheben; }
-@keyframes kf-wadenheben {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.svg-icon-large[data-icon-id="hip-thrust"] .anim-part { animation-name: kf-hip-thrust; }
-@keyframes kf-hip-thrust {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
-}
-
-.svg-icon-large[data-icon-id="schulterdruecken"] .anim-part { animation-name: kf-schulterdruecken; }
-@keyframes kf-schulterdruecken {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
-}
-
-.svg-icon-large[data-icon-id="seitheben"] .anim-part { animation-name: kf-seitheben; }
-@keyframes kf-seitheben {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
-}
-
-.svg-icon-large[data-icon-id="bauchpresse"] .anim-part {
-  transform-origin: 50px 14px;
-  animation-name: kf-bauchpresse;
-}
-@keyframes kf-bauchpresse {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-12deg); }
-}
-
-.svg-icon-large[data-icon-id="crunches"] .anim-part {
-  transform-origin: 10px 22px;
-  animation-name: kf-crunches;
-}
-@keyframes kf-crunches {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(20deg); }
-}
-
-.svg-icon-large[data-icon-id="lat-pulldown"] .anim-part { animation-name: kf-lat-pulldown; }
-@keyframes kf-lat-pulldown {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(10px); }
-}
-
-.svg-icon-large[data-icon-id="rudern-maschine"] .anim-part { animation-name: kf-rudern; }
-@keyframes kf-rudern {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(-12px); }
-}
-
-.svg-icon-large[data-icon-id="shrugs"] .anim-part { animation-name: kf-shrugs; }
-@keyframes kf-shrugs {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-/* Eigengewicht + Klimmzüge + Band-Übungen */
-
-.svg-icon-large[data-icon-id="liegestuetze"] .anim-part { animation-name: kf-liegestuetze; }
-@keyframes kf-liegestuetze {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(4px); }
-}
-
-.svg-icon-large[data-icon-id="ausfallschritte"] .anim-part { animation-name: kf-ausfallschritte; }
-@keyframes kf-ausfallschritte {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3.5px); }
-}
-
+/* Drücken nach oben (Brust, Schultern, Curls, Klimmzüge, Wade) */
+.svg-icon-large[data-icon-id="bankdruecken"] .anim-part,
+.svg-icon-large[data-icon-id="schulterdruecken"] .anim-part,
+.svg-icon-large[data-icon-id="band-press"] .anim-part,
+.svg-icon-large[data-icon-id="seitheben"] .anim-part,
+.svg-icon-large[data-icon-id="wadenheben"] .anim-part,
+.svg-icon-large[data-icon-id="sz-curls"] .anim-part,
+.svg-icon-large[data-icon-id="band-curl"] .anim-part,
 .svg-icon-large[data-icon-id="klimmzug-breit"] .anim-part,
 .svg-icon-large[data-icon-id="klimmzug-neutral"] .anim-part,
-.svg-icon-large[data-icon-id="klimmzug-untergriff"] .anim-part { animation-name: kf-klimmzug; }
-@keyframes kf-klimmzug {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
+.svg-icon-large[data-icon-id="klimmzug-untergriff"] .anim-part { animation-name: kf-press; }
 
-.svg-icon-large[data-icon-id="band-curl"] .anim-part { animation-name: kf-band-curl; }
-@keyframes kf-band-curl {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
+.svg-icon-large[data-icon-id="hip-thrust"] .anim-part { animation-name: kf-press-lg; }
 
-.svg-icon-large[data-icon-id="band-press"] .anim-part { animation-name: kf-band-press; }
-@keyframes kf-band-press {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
+/* Nach unten (Latzug, Liegestütze, Kniebeuge, Ausfallschritt) */
+.svg-icon-large[data-icon-id="lat-pulldown"] .anim-part,
+.svg-icon-large[data-icon-id="liegestuetze"] .anim-part,
+.svg-icon-large[data-icon-id="band-squat"] .anim-part,
+.svg-icon-large[data-icon-id="ausfallschritte"] .anim-part { animation-name: kf-down; }
 
-.svg-icon-large[data-icon-id="band-row"] .anim-part { animation-name: kf-band-row; }
-@keyframes kf-band-row {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
-}
+/* Ziehen seitlich (Rudern) */
+.svg-icon-large[data-icon-id="rudern-maschine"] .anim-part,
+.svg-icon-large[data-icon-id="band-row"] .anim-part { animation-name: kf-rowx; }
 
-.svg-icon-large[data-icon-id="band-squat"] .anim-part { animation-name: kf-band-squat; }
-@keyframes kf-band-squat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(4px); }
-}
-
+/* Auseinanderziehen */
 .svg-icon-large[data-icon-id="band-pull-apart"] .anim-part {
-  transform-origin: 32px 27px;
-  animation-name: kf-band-pull-apart;
+  transform-origin: 32px 26px;
+  animation-name: kf-pull;
 }
-@keyframes kf-band-pull-apart {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(1.14); }
+
+/* Knie strecken / beugen */
+.svg-icon-large[data-icon-id="leg-extension"] .anim-part {
+  transform-origin: 32px 35px;
+  animation-name: kf-kneeext;
 }
+.svg-icon-large[data-icon-id="beinbeuger"] .anim-part {
+  transform-origin: 36px 34px;
+  animation-name: kf-kneecurl;
+}
+.svg-icon-large[data-icon-id="leg-press"] .anim-part { animation-name: kf-legpress; }
+
+/* Bauch */
+.svg-icon-large[data-icon-id="crunches"] .anim-part {
+  transform-origin: 40px 42px;
+  animation-name: kf-crunch;
+}
+.svg-icon-large[data-icon-id="bauchpresse"] .anim-part {
+  transform-origin: 14px 48px;
+  animation-name: kf-lever;
+}
+
+/* Überzug (Arme über Kopf) */
+.svg-icon-large[data-icon-id="ueberzug"] .anim-part {
+  transform-origin: 38px 40px;
+  animation-name: kf-sweep;
+}
+
+/* Shrugs + neutrale Figur (sanftes Heben) */
+.svg-icon-large[data-icon-id="shrugs"] .anim-part,
+.svg-icon-large[data-icon-id="dumbbell"] .anim-part { animation-name: kf-pulse; }
 
 /* ---------- Theme-Umschalter (Segmented Control) ---------- */
 
@@ -919,10 +1043,12 @@ select {
   .history-list li.new,
   .exercise-row.row-in,
   .spark-line.draw,
+  .bodymap-slot.flip .body-svg,
   .modal {
     animation: none !important;
   }
   .spark-line.draw { stroke-dasharray: none; }
   .modal, .modal.hidden { transition: none !important; }
+  .body-svg .muscle-region path, .body-svg .muscle-region ellipse { transition: none; }
   .exercise-row:active { transform: none; }
 }

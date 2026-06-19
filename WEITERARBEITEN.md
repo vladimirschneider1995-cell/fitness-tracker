@@ -83,7 +83,7 @@ git push
 GitHub Pages baut dann automatisch neu (~1 Min). Fertig.
 
 **Wichtig bei Datei-Änderungen:** Wenn sich Code ändert, sollte in `service-worker.js` die Zeile
-`const CACHE_NAME = 'fitness-v6'` (aktueller Stand) hochgezählt werden (`v7`, `v8`, …), sonst zeigt das Handy evtl. die alte Version.
+`const CACHE_NAME = 'fitness-v7'` (aktueller Stand) hochgezählt werden (`v8`, `v9`, …), sonst zeigt das Handy evtl. die alte Version.
 Claude denkt normalerweise daran — falls die App nach einem Update „alt" aussieht, ist das fast immer die Ursache.
 
 ---
@@ -112,6 +112,7 @@ Homescreen entfernst, sind sie weg.
 ## 7. Ideen-Liste / nächste Schritte
 
 **Schon erledigt (Juni 2026):**
+- ✅ **Anatomisches Redesign:** anklickbarer Körper (Vorder-/Rückseite) als Startseite — Muskel antippen filtert seine Übungen; alle Icons neu als kleine anatomische Figuren mit hervorgehobenem Zielmuskel; neue Übungen Bankdrücken (Maschine), Überzug/Pullover, SZ-Curls. (Körper als SVG, keine schweren 3D-Bibliotheken → bleibt leicht/offline.)
 - ✅ Sicherheits-Check + Härtung — keine API-Keys/Secrets im Code, CSP-Schutz, nicht bei Google auffindbar (noindex)
 - ✅ Geräte-Icons komplett neu im feinen, detaillierten Linien-Stil
 - ✅ Mehr Leben: Seiten-Slides beim Menüwechsel, gestaffeltes Einblenden, „Morph" beim Öffnen einer Übung, Tipp-Feedback
@@ -120,8 +121,8 @@ Homescreen entfernst, sind sie weg.
 - ✅ **Verlaufs-Kurve** pro Übung über der Verlaufsliste (edle Mini-Kurve mit Verlauf-Fill, ab 2 Einträgen)
 
 **Als Nächstes / offene Ideen:**
-- **Mehr Geräte-Icons** für weitere Maschinen ergänzen (Vladimir benennt die Übungen selbst; das Icon soll das jeweilige Gerät abbilden)
-- Übungen für Brust und Arme ergänzen
+- Beim Anlegen einer eigenen Übung optional den Muskel direkt wählen (Feld „Muskel" ist schon da) — sonst wird er automatisch vom Icon abgeleitet
+- Feinschliff der Körper-Proportionen / mehr Muskel-Details, falls gewünscht
 - Bandfarbe einer **bestehenden** Übung nachträglich ändern (geht aktuell nur beim Neu-Anlegen)
 - Optional: Wiederholungen/Sätze zusätzlich zum Gewicht (macht die App etwas weniger minimal)
 

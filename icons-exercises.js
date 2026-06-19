@@ -1,412 +1,36 @@
 'use strict';
 
-// Geräte-Icons im feinen Linien-Stil, ausgearbeitet (viewBox 0 0 64 64, Outline, currentColor).
-// Maschinen mit Sitzen/Polstern/Gewichten, Figuren mit Körper-Umriss.
-// Jede SVG hat .frame (statisch) und .anim-part (bewegt sich im Detail-Fenster).
+// Anatomische Übungs-Icons: Mini-Version der Körpermodell-Figur mit coral hervorgehobenem
+// Zielmuskel. Die Figur ist EINMAL als unsichtbares Sprite (#fig-*/#hm-*) in index.html
+// definiert; hier nur Referenzen via <use> (DOM-leicht). Gleiche Bildsprache wie body-map.js.
+//  - Liste/Picker: schlanke Outline-Figur (#fig-<view>-o) + Zielmuskel
+//  - Detail-Fenster: volle Figur (#fig-<view>) + Zielmuskel, der pulsiert (CSS)
 
-const LINE = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
+// Muskel → Körperseite (front/back). Quelle: MUSCLE_REGIONS (body-map.js).
+const MUSCLE_VIEW = Object.fromEntries(MUSCLE_REGIONS.map(m => [m.id, m.view]));
 
-// Band-Stränge tragen die Klasse .band-strand; ihre Farbe kommt aus --band-color
-// (gesetzt über data-band am Container, siehe style.css), Fallback currentColor.
-const BAND = 'class="band-strand"';
+function anatomyIcon(iconId, detailed) {
+  const muscle = (typeof ICON_MUSCLE !== 'undefined' && ICON_MUSCLE[iconId]) ? ICON_MUSCLE[iconId] : null;
+  const view = muscle ? (MUSCLE_VIEW[muscle] || 'front') : 'front';
+  const vb = view === 'back' ? '724 0 724 1448' : '0 0 724 1448';
+  const fig = detailed ? `#fig-${view}` : `#fig-${view}-o`;
+  const hl = muscle
+    ? `<use class="ico-hl" href="#hm-${muscle}"/>`
+    : '';
+  return `<svg viewBox="${vb}" class="anatomy-icon" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="${fig}"/>${hl}</svg>`;
+}
 
-const EXERCISE_ICONS = {
-
-  'dumbbell': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="25" y1="32" x2="39" y2="32"/>
-      <line x1="27" y1="28" x2="27" y2="36"/>
-      <line x1="37" y1="28" x2="37" y2="36"/>
-    </g>
-    <g class="anim-part">
-      <rect x="19" y="19" width="6" height="26" rx="3"/>
-      <rect x="13" y="23" width="5" height="18" rx="2.5"/>
-      <rect x="7" y="26" width="4.5" height="12" rx="2.25"/>
-      <rect x="39" y="19" width="6" height="26" rx="3"/>
-      <rect x="46" y="23" width="5" height="18" rx="2.5"/>
-      <rect x="52.5" y="26" width="4.5" height="12" rx="2.25"/>
-    </g>
-  </svg>`,
-
-  'leg-extension': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="12" y="13" width="6" height="22" rx="2"/>
-      <rect x="12" y="34" width="22" height="6" rx="2"/>
-      <line x1="15" y1="40" x2="15" y2="52"/>
-      <line x1="30" y1="40" x2="30" y2="52"/>
-      <line x1="10" y1="52" x2="35" y2="52"/>
-      <circle cx="32" cy="40" r="2"/>
-    </g>
-    <g class="anim-part">
-      <line x1="32" y1="40" x2="50" y2="40"/>
-      <rect x="48" y="35" width="8" height="10" rx="4"/>
-    </g>
-  </svg>`,
-
-  'leg-press': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="7" y="34" width="6" height="14" rx="2"/>
-      <rect x="7" y="44" width="16" height="7" rx="2"/>
-      <line x1="6" y1="54" x2="26" y2="54"/>
-      <line x1="22" y1="46" x2="48" y2="22"/>
-      <line x1="26" y1="49" x2="52" y2="25"/>
-    </g>
-    <g class="anim-part">
-      <rect x="44" y="9" width="7" height="17" rx="2"/>
-      <circle cx="56" cy="17" r="5"/>
-    </g>
-  </svg>`,
-
-  'beinbeuger': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="8" y="30" width="40" height="7" rx="3"/>
-      <line x1="12" y1="37" x2="12" y2="50"/>
-      <line x1="44" y1="37" x2="44" y2="50"/>
-      <line x1="8" y1="50" x2="48" y2="50"/>
-      <rect x="53" y="14" width="5" height="22" rx="2"/>
-    </g>
-    <g class="anim-part">
-      <line x1="55" y1="20" x2="44" y2="30"/>
-      <rect x="40" y="27" width="9" height="7" rx="3.5"/>
-    </g>
-  </svg>`,
-
-  'wadenheben': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="29" y="17" width="6" height="29" rx="2"/>
-      <rect x="22" y="46" width="20" height="5" rx="1"/>
-      <line x1="18" y1="54" x2="46" y2="54"/>
-      <line x1="22" y1="51" x2="22" y2="54"/>
-      <line x1="42" y1="51" x2="42" y2="54"/>
-    </g>
-    <g class="anim-part">
-      <rect x="20" y="11" width="24" height="7" rx="3.5"/>
-      <line x1="26" y1="18" x2="26" y2="22"/>
-      <line x1="38" y1="18" x2="38" y2="22"/>
-    </g>
-  </svg>`,
-
-  'hip-thrust': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="8" y="40" width="32" height="6" rx="3"/>
-      <line x1="13" y1="46" x2="13" y2="54"/>
-      <line x1="35" y1="46" x2="35" y2="54"/>
-    </g>
-    <g class="anim-part">
-      <line x1="17" y1="33" x2="47" y2="33"/>
-      <circle cx="17" cy="33" r="7"/>
-      <circle cx="47" cy="33" r="7"/>
-    </g>
-  </svg>`,
-
-  'schulterdruecken': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="14" y="22" width="6" height="20" rx="2"/>
-      <rect x="14" y="40" width="20" height="6" rx="2"/>
-      <line x1="16" y1="46" x2="16" y2="54"/>
-      <line x1="32" y1="46" x2="32" y2="54"/>
-      <line x1="11" y1="54" x2="37" y2="54"/>
-    </g>
-    <g class="anim-part">
-      <line x1="20" y1="14" x2="44" y2="14"/>
-      <line x1="24" y1="14" x2="24" y2="20"/>
-      <line x1="40" y1="14" x2="40" y2="20"/>
-      <circle cx="20" cy="14" r="3"/>
-      <circle cx="44" cy="14" r="3"/>
-    </g>
-  </svg>`,
-
-  'seitheben': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="32" cy="12" r="5"/>
-      <path d="M26 20 Q32 17.5 38 20 Q37 29 36 38 Q32 40 28 38 Q27 29 26 20 Z"/>
-      <path d="M29.5 39 Q27.5 47 26 54"/>
-      <path d="M34.5 39 Q36.5 47 38 54"/>
-    </g>
-    <g class="anim-part">
-      <path d="M27 22 Q19 23.5 13 29"/>
-      <path d="M37 22 Q45 23.5 51 29"/>
-      <line x1="9.5" y1="26" x2="9.5" y2="33"/>
-      <line x1="16" y1="27" x2="16" y2="32"/>
-      <line x1="9.5" y1="29.5" x2="16" y2="29.5"/>
-      <line x1="54.5" y1="26" x2="54.5" y2="33"/>
-      <line x1="48" y1="27" x2="48" y2="32"/>
-      <line x1="48" y1="29.5" x2="54.5" y2="29.5"/>
-    </g>
-  </svg>`,
-
-  'bauchpresse': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="10" y="42" width="22" height="6" rx="2"/>
-      <rect x="30" y="24" width="5" height="20" rx="2"/>
-      <line x1="12" y1="48" x2="12" y2="54"/>
-      <line x1="30" y1="48" x2="30" y2="54"/>
-      <line x1="8" y1="54" x2="36" y2="54"/>
-      <rect x="48" y="14" width="5" height="28" rx="2"/>
-    </g>
-    <g class="anim-part">
-      <line x1="50" y1="22" x2="40" y2="26"/>
-      <rect x="33" y="22" width="9" height="9" rx="3"/>
-    </g>
-  </svg>`,
-
-  'crunches': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="10" y="42" width="22" height="6" rx="2"/>
-      <line x1="12" y1="48" x2="12" y2="54"/>
-      <line x1="30" y1="48" x2="30" y2="54"/>
-      <line x1="8" y1="54" x2="36" y2="54"/>
-      <rect x="40" y="38" width="4" height="14" rx="2"/>
-      <circle cx="42" cy="38" r="3"/>
-    </g>
-    <g class="anim-part">
-      <rect x="8" y="19" width="16" height="6" rx="3"/>
-      <line x1="10" y1="25" x2="10" y2="42"/>
-    </g>
-  </svg>`,
-
-  'lat-pulldown': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="12" y1="9" x2="54" y2="9"/>
-      <circle cx="14" cy="9" r="2.5"/>
-      <line x1="54" y1="9" x2="54" y2="56"/>
-      <rect x="48" y="34" width="12" height="22" rx="2"/>
-      <line x1="48" y1="40" x2="60" y2="40"/>
-      <line x1="48" y1="46" x2="60" y2="46"/>
-      <line x1="18" y1="48" x2="34" y2="48"/>
-      <line x1="20" y1="48" x2="20" y2="56"/>
-      <line x1="32" y1="48" x2="32" y2="56"/>
-      <line x1="22" y1="42" x2="30" y2="42"/>
-      <line x1="26" y1="42" x2="26" y2="48"/>
-    </g>
-    <g class="anim-part">
-      <line x1="14" y1="11" x2="14" y2="21"/>
-      <line x1="8" y1="23" x2="32" y2="23"/>
-      <line x1="8" y1="23" x2="8" y2="28"/>
-      <line x1="32" y1="23" x2="32" y2="28"/>
-      <line x1="14" y1="23" x2="14" y2="20"/>
-      <line x1="26" y1="23" x2="26" y2="20"/>
-    </g>
-  </svg>`,
-
-  'rudern-maschine': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <rect x="10" y="40" width="18" height="6" rx="2"/>
-      <line x1="12" y1="46" x2="12" y2="54"/>
-      <line x1="26" y1="46" x2="26" y2="54"/>
-      <line x1="6" y1="54" x2="32" y2="54"/>
-      <rect x="30" y="24" width="6" height="10" rx="2"/>
-      <rect x="50" y="34" width="9" height="14" rx="2"/>
-      <line x1="50" y1="40" x2="59" y2="40"/>
-      <line x1="52" y1="16" x2="52" y2="34"/>
-    </g>
-    <g class="anim-part">
-      <line x1="40" y1="30" x2="52" y2="30"/>
-      <line x1="38" y1="25" x2="38" y2="35"/>
-      <line x1="36" y1="30" x2="40" y2="30"/>
-    </g>
-  </svg>`,
-
-  'shrugs': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="32" cy="12" r="5"/>
-      <path d="M26 20 Q32 17.5 38 20 Q37 28 36 36 Q32 38 28 36 Q27 28 26 20 Z"/>
-      <path d="M27 23 Q24 33 23 45"/>
-      <path d="M37 23 Q40 33 41 45"/>
-      <path d="M29.5 37 Q28 46 27 54"/>
-      <path d="M34.5 37 Q36 46 37 54"/>
-    </g>
-    <g class="anim-part">
-      <line x1="18" y1="46" x2="46" y2="46"/>
-      <circle cx="20" cy="46" r="4.5"/>
-      <circle cx="44" cy="46" r="4.5"/>
-    </g>
-  </svg>`,
-
-  // ---- Eigengewicht ----
-
-  'liegestuetze': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="6" y1="51" x2="58" y2="51"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="13" cy="27" r="4.5"/>
-      <line x1="17" y1="29" x2="40" y2="34"/>
-      <line x1="40" y1="34" x2="53" y2="49"/>
-      <line x1="19" y1="30" x2="22" y2="50"/>
-    </g>
-  </svg>`,
-
-  'ausfallschritte': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="6" y1="54" x2="58" y2="54"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="33" cy="12" r="4.5"/>
-      <line x1="33" y1="16.5" x2="33" y2="34"/>
-      <line x1="33" y1="34" x2="44" y2="42"/>
-      <line x1="44" y1="42" x2="44" y2="53"/>
-      <line x1="33" y1="34" x2="22" y2="46"/>
-      <line x1="22" y1="46" x2="14" y2="53"/>
-      <line x1="33" y1="21" x2="38" y2="32"/>
-    </g>
-  </svg>`,
-
-  // ---- Klimmzüge (band-fähig: Schlaufe als .band-optional) ----
-
-  'klimmzug-breit': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="8" y1="11" x2="56" y2="11"/>
-      <line x1="12" y1="6" x2="12" y2="11"/>
-      <line x1="52" y1="6" x2="52" y2="11"/>
-      <path d="M15 11 Q18 6.5 21 11"/>
-      <path d="M43 11 Q46 6.5 49 11"/>
-      <line x1="18" y1="11" x2="28" y2="29"/>
-      <line x1="46" y1="11" x2="36" y2="29"/>
-      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="32" cy="31" r="4.5"/>
-      <line x1="32" y1="35" x2="32" y2="46"/>
-      <line x1="32" y1="46" x2="27" y2="55"/>
-      <line x1="32" y1="46" x2="37" y2="55"/>
-    </g>
-  </svg>`,
-
-  'klimmzug-neutral': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="8" y1="11" x2="56" y2="11"/>
-      <line x1="12" y1="6" x2="12" y2="11"/>
-      <line x1="52" y1="6" x2="52" y2="11"/>
-      <line x1="27" y1="11" x2="27" y2="17"/>
-      <line x1="37" y1="11" x2="37" y2="17"/>
-      <line x1="24" y1="15" x2="30" y2="15"/>
-      <line x1="34" y1="15" x2="40" y2="15"/>
-      <line x1="27" y1="16" x2="29" y2="29"/>
-      <line x1="37" y1="16" x2="35" y2="29"/>
-      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="32" cy="31" r="4.5"/>
-      <line x1="32" y1="35" x2="32" y2="46"/>
-      <line x1="32" y1="46" x2="27" y2="55"/>
-      <line x1="32" y1="46" x2="37" y2="55"/>
-    </g>
-  </svg>`,
-
-  'klimmzug-untergriff': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line x1="8" y1="11" x2="56" y2="11"/>
-      <line x1="12" y1="6" x2="12" y2="11"/>
-      <line x1="52" y1="6" x2="52" y2="11"/>
-      <path d="M25 11 Q28.5 15.5 32 11"/>
-      <path d="M32 11 Q35.5 15.5 39 11"/>
-      <line x1="29" y1="13" x2="30" y2="29"/>
-      <line x1="35" y1="13" x2="34" y2="29"/>
-      <path class="band-strand band-optional" d="M30 12 C 26 26, 26 40, 31 49 Q32 51 33 49 C 38 40, 38 26, 34 12"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="32" cy="31" r="4.5"/>
-      <line x1="32" y1="35" x2="32" y2="46"/>
-      <line x1="32" y1="46" x2="27" y2="55"/>
-      <line x1="32" y1="46" x2="37" y2="55"/>
-    </g>
-  </svg>`,
-
-  // ---- Resistance-Band (Band = farbiger Kern via ${BAND}) ----
-
-  'band-curl': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="32" cy="11" r="4.5"/>
-      <line x1="32" y1="15.5" x2="32" y2="35"/>
-      <line x1="32" y1="35" x2="25" y2="54"/>
-      <line x1="32" y1="35" x2="39" y2="54"/>
-      <line x1="32" y1="20" x2="24" y2="33"/>
-      <line x1="32" y1="20" x2="40" y2="33"/>
-      <line ${BAND} x1="25" y1="53" x2="26" y2="25"/>
-      <line ${BAND} x1="39" y1="53" x2="38" y2="25"/>
-    </g>
-    <g class="anim-part">
-      <line x1="24" y1="33" x2="26" y2="25"/>
-      <line x1="40" y1="33" x2="38" y2="25"/>
-    </g>
-  </svg>`,
-
-  'band-press': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="32" cy="15" r="4.5"/>
-      <line x1="32" y1="19.5" x2="32" y2="37"/>
-      <line x1="32" y1="37" x2="26" y2="54"/>
-      <line x1="32" y1="37" x2="38" y2="54"/>
-      <line ${BAND} x1="26" y1="53" x2="24" y2="13"/>
-      <line ${BAND} x1="38" y1="53" x2="40" y2="13"/>
-    </g>
-    <g class="anim-part">
-      <line x1="32" y1="21" x2="24" y2="13"/>
-      <line x1="32" y1="21" x2="40" y2="13"/>
-      <line x1="20" y1="13" x2="28" y2="13"/>
-      <line x1="36" y1="13" x2="44" y2="13"/>
-    </g>
-  </svg>`,
-
-  'band-row': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="36" cy="14" r="4.5"/>
-      <line x1="36" y1="18.5" x2="36" y2="37"/>
-      <line x1="36" y1="37" x2="31" y2="54"/>
-      <line x1="36" y1="37" x2="41" y2="54"/>
-      <line x1="36" y1="22" x2="30" y2="30"/>
-      <line x1="9" y1="18" x2="9" y2="42"/>
-      <line ${BAND} x1="9" y1="30" x2="22" y2="30"/>
-    </g>
-    <g class="anim-part">
-      <line x1="30" y1="30" x2="21" y2="30"/>
-      <line x1="21" y1="27" x2="21" y2="33"/>
-    </g>
-  </svg>`,
-
-  'band-squat': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <line ${BAND} x1="22" y1="53" x2="26" y2="24"/>
-      <line ${BAND} x1="42" y1="53" x2="38" y2="24"/>
-    </g>
-    <g class="anim-part">
-      <circle cx="32" cy="15" r="4.5"/>
-      <line x1="32" y1="19.5" x2="32" y2="33"/>
-      <line x1="32" y1="33" x2="24" y2="40"/>
-      <line x1="24" y1="40" x2="22" y2="53"/>
-      <line x1="32" y1="33" x2="40" y2="40"/>
-      <line x1="40" y1="40" x2="42" y2="53"/>
-      <line x1="32" y1="22" x2="26" y2="24"/>
-      <line x1="32" y1="22" x2="38" y2="24"/>
-    </g>
-  </svg>`,
-
-  'band-pull-apart': `<svg viewBox="0 0 64 64" ${LINE} aria-hidden="true">
-    <g class="frame">
-      <circle cx="32" cy="13" r="4.5"/>
-      <line x1="32" y1="17.5" x2="32" y2="40"/>
-      <line x1="32" y1="40" x2="26" y2="54"/>
-      <line x1="32" y1="40" x2="38" y2="54"/>
-      <line x1="32" y1="23" x2="22" y2="27"/>
-      <line x1="32" y1="23" x2="42" y2="27"/>
-    </g>
-    <g class="anim-part">
-      <line x1="22" y1="27" x2="14" y2="27"/>
-      <line x1="42" y1="27" x2="50" y2="27"/>
-      <line ${BAND} x1="14" y1="27" x2="50" y2="27"/>
-    </g>
-  </svg>`,
-};
-
-// Liste für den Picker im Settings-Form
+// Liste für den Picker im Settings-Form (Label = Übungstyp, Icon zeigt den Zielmuskel)
 const AVAILABLE_ICONS = [
-  { id: 'dumbbell',          label: 'Hantel (Standard)' },
+  { id: 'dumbbell',          label: 'Figur (Standard)' },
   { id: 'leg-extension',     label: 'Leg Extension' },
   { id: 'leg-press',         label: 'Leg Press' },
   { id: 'beinbeuger',        label: 'Beinbeuger' },
   { id: 'wadenheben',        label: 'Wadenheben' },
   { id: 'hip-thrust',        label: 'Hip Thrust' },
+  { id: 'bankdruecken',      label: 'Bankdrücken' },
+  { id: 'ueberzug',          label: 'Überzug / Pullover' },
+  { id: 'liegestuetze',      label: 'Liegestütze' },
   { id: 'schulterdruecken',  label: 'Schulterdrücken' },
   { id: 'seitheben',         label: 'Seitheben' },
   { id: 'bauchpresse',       label: 'Bauchpresse' },
@@ -414,9 +38,8 @@ const AVAILABLE_ICONS = [
   { id: 'lat-pulldown',      label: 'Lat Pulldown' },
   { id: 'rudern-maschine',   label: 'Rudern' },
   { id: 'shrugs',            label: 'Shrugs' },
-
-  { id: 'liegestuetze',        label: 'Liegestütze' },
-  { id: 'ausfallschritte',     label: 'Ausfallschritte' },
+  { id: 'sz-curls',          label: 'SZ-Curls' },
+  { id: 'ausfallschritte',   label: 'Ausfallschritte' },
   { id: 'klimmzug-breit',      label: 'Klimmzug breit',        band: true },
   { id: 'klimmzug-neutral',    label: 'Klimmzug parallel',     band: true },
   { id: 'klimmzug-untergriff', label: 'Klimmzug Untergriff',   band: true },
@@ -427,8 +50,7 @@ const AVAILABLE_ICONS = [
   { id: 'band-pull-apart',     label: 'Band Auseinanderziehen', band: true },
 ];
 
-// Bandfarben (Active Vikings). „schwarz" wird hell gerendert — reines Schwarz
-// wäre auf dem dunklen Grund unsichtbar. Werte spiegeln sich in style.css wider.
+// Bandfarben (Active Vikings). „schwarz" wird hell gerendert. Werte spiegeln sich in style.css.
 const BAND_COLORS = [
   { id: 'gruen',   label: 'Grün',    css: '#34c759' },
   { id: 'lila',    label: 'Lila',    css: '#bf5af2' },
@@ -436,6 +58,11 @@ const BAND_COLORS = [
   { id: 'schwarz', label: 'Schwarz', css: '#c7c7cc' },
   { id: 'rot',     label: 'Rot',     css: '#ff453a' },
 ];
+
+// Vorgebaute schlanke Icons je iconId — für Liste & Picker.
+const EXERCISE_ICONS = {};
+for (const o of AVAILABLE_ICONS) EXERCISE_ICONS[o.id] = anatomyIcon(o.id, false);
+if (!EXERCISE_ICONS['dumbbell']) EXERCISE_ICONS['dumbbell'] = anatomyIcon('dumbbell', false);
 
 function iconIsBandCapable(iconId) {
   const opt = AVAILABLE_ICONS.find(o => o.id === iconId);
@@ -450,8 +77,9 @@ function iconIdFor(exercise) {
 
 function iconHTML(exercise, sizeClass) {
   const id = iconIdFor(exercise);
+  // Detail-Fenster: volle Figur (mit Puls); Liste/Picker: schlanke Outline-Figur.
+  const svg = (sizeClass === 'svg-icon-large') ? anatomyIcon(id, true) : (EXERCISE_ICONS[id] || anatomyIcon(id, false));
   // Bandfarbe nur anhängen, wenn gesetzt UND das Icon band-fähig ist.
-  const band = (exercise.bandColor && iconIsBandCapable(id))
-    ? ` data-band="${exercise.bandColor}"` : '';
-  return `<div class="${sizeClass}" data-icon-id="${id}"${band}>${EXERCISE_ICONS[id]}</div>`;
+  const band = (exercise.bandColor && iconIsBandCapable(id)) ? ` data-band="${exercise.bandColor}"` : '';
+  return `<div class="${sizeClass}" data-icon-id="${id}"${band}>${svg}</div>`;
 }

@@ -2,6 +2,7 @@
 
 const STORAGE_EXERCISES = 'fitness_exercises';
 const STORAGE_LOGS = 'fitness_logs';
+const STORAGE_MIGRATIONS = 'fitness_migrations';
 
 const SEED_EXERCISES = [
   { id: 'leg-extension',   name: 'Leg Extension',         group: 'lower', category: 'Beine' },
@@ -10,8 +11,13 @@ const SEED_EXERCISES = [
   { id: 'wadenheben',      name: 'Wadenheben',            group: 'lower', category: 'Beine' },
   { id: 'hip-thrust',      name: 'Hip Thrust',            group: 'lower', category: 'Beine' },
 
+  { id: 'bankdruecken',    name: 'Bankdrücken (Maschine)', group: 'upper', category: 'Brust', iconId: 'bankdruecken' },
+  { id: 'ueberzug',        name: 'Überzug / Pullover',     group: 'upper', category: 'Brust', iconId: 'ueberzug' },
+
   { id: 'schulterdruecken', name: 'Schulterdrücken (Maschine)', group: 'upper', category: 'Schultern' },
   { id: 'seitheben',        name: 'Seitheben',                  group: 'upper', category: 'Schultern' },
+
+  { id: 'sz-curls',        name: 'SZ-Curls (Bizeps)',     group: 'upper', category: 'Arme', iconId: 'sz-curls' },
 
   { id: 'bauchpresse',     name: 'Bauchpresse',           group: 'upper', category: 'Bauch' },
   { id: 'crunches',        name: 'Crunches (Maschine)',   group: 'upper', category: 'Bauch' },
@@ -20,6 +26,14 @@ const SEED_EXERCISES = [
   { id: 'rudern-maschine', name: 'Rudern (Maschine)',     group: 'upper', category: 'Rücken' },
 
   { id: 'shrugs',          name: 'Shrugs / Nackenheben',  group: 'upper', category: 'Nacken' },
+];
+
+// Übungen, die mit dem anatomischen Update dazukommen. Werden bei Neuinstallation über
+// SEED_EXERCISES gesetzt; bei bestehender Installation einmalig per Migration ergänzt.
+const NEW_EXERCISES_2026_06 = [
+  { id: 'bankdruecken', name: 'Bankdrücken (Maschine)', group: 'upper', category: 'Brust', iconId: 'bankdruecken' },
+  { id: 'ueberzug',     name: 'Überzug / Pullover',     group: 'upper', category: 'Brust', iconId: 'ueberzug' },
+  { id: 'sz-curls',     name: 'SZ-Curls (Bizeps)',      group: 'upper', category: 'Arme',  iconId: 'sz-curls' },
 ];
 
 const GROUP_LABEL = { upper: 'Oberkörper', lower: 'Unterkörper' };
@@ -54,7 +68,7 @@ function seedIfEmpty() {
   }
 }
 
-function addExercise(name, group, category, iconId, bandColor) {
+function addExercise(name, group, category, iconId, bandColor, muscle) {
   const exercises = getExercises();
   const id = slugify(name) + '-' + Date.now().toString(36);
   const resolvedIcon = iconId && EXERCISE_ICONS[iconId] ? iconId : 'dumbbell';
@@ -66,6 +80,8 @@ function addExercise(name, group, category, iconId, bandColor) {
     iconId: resolvedIcon,
     // Bandfarbe nur speichern, wenn das Icon band-fähig ist und eine Farbe gewählt wurde.
     bandColor: (bandColor && iconIsBandCapable(resolvedIcon)) ? bandColor : null,
+    // Muskel-Override für die Körperkarte; sonst wird er aus Icon/Kategorie abgeleitet.
+    muscle: (muscle && MUSCLE_LABEL[muscle]) ? muscle : null,
   });
   saveJSON(STORAGE_EXERCISES, exercises);
   return id;
@@ -82,6 +98,34 @@ function migrateIconIds() {
     }
   }
   if (changed) saveJSON(STORAGE_EXERCISES, exercises);
+}
+
+// ---------- Migrationen ----------
+
+function getMigrations() {
+  return loadJSON(STORAGE_MIGRATIONS, []);
+}
+
+function markMigration(key) {
+  const done = getMigrations();
+  if (!done.includes(key)) { done.push(key); saveJSON(STORAGE_MIGRATIONS, done); }
+}
+
+// Fügt die neuen Brust-/Arm-Übungen bei Bestandsinstallationen genau einmal hinzu.
+// Idempotent über ein Flag: gelöschte Übungen werden NICHT wieder eingespielt.
+function migrateNewExercises() {
+  const key = 'brust_arme_2026_06';
+  if (getMigrations().includes(key)) return;
+  const exercises = getExercises();
+  if (exercises.length > 0) { // Neuinstallation hat sie schon über SEED bekommen
+    const have = new Set(exercises.map(e => e.id));
+    let added = false;
+    for (const ex of NEW_EXERCISES_2026_06) {
+      if (!have.has(ex.id)) { exercises.push({ ...ex, bandColor: null, muscle: null }); added = true; }
+    }
+    if (added) saveJSON(STORAGE_EXERCISES, exercises);
+  }
+  markMigration(key);
 }
 
 function renameExercise(id, newName) {
@@ -163,17 +207,137 @@ function groupBy(arr, keyFn) {
   return map;
 }
 
+// ---------- Körperkarte (anatomische Navigation) ----------
+
+let bodyView = 'front';      // 'front' | 'back'
+let selectedMuscle = null;   // aktiver Muskel-Filter (null = alle Übungen)
+
+// Muskel einer Übung: expliziter Override → Icon → Kategorie.
+function resolveMuscle(exercise) {
+  if (exercise.muscle && MUSCLE_LABEL[exercise.muscle]) return exercise.muscle;
+  const iconId = iconIdFor(exercise);
+  if (ICON_MUSCLE[iconId]) return ICON_MUSCLE[iconId];
+  return CATEGORY_MUSCLE[exercise.category] || null;
+}
+
+function muscleCounts() {
+  const counts = {};
+  for (const ex of getExercises()) {
+    const m = resolveMuscle(ex);
+    if (m) counts[m] = (counts[m] || 0) + 1;
+  }
+  return counts;
+}
+
+function renderBodyMap() {
+  const slot = document.getElementById('bodymap-slot');
+  if (!slot) return;
+  slot.innerHTML = BODY_SVG[bodyView];
+  const counts = muscleCounts();
+  slot.querySelectorAll('.muscle-region').forEach(g => {
+    const m = g.dataset.muscle;
+    const n = counts[m] || 0;
+    if (!n) g.classList.add('empty');
+    g.setAttribute('aria-label', `${MUSCLE_LABEL[m] || m} — ${n ? n + ' Übungen' : 'keine Übungen'}`);
+  });
+  highlightSelectedMuscle();
+}
+
+function highlightSelectedMuscle() {
+  const slot = document.getElementById('bodymap-slot');
+  if (!slot) return;
+  slot.querySelectorAll('.muscle-region').forEach(g => {
+    g.classList.toggle('active', g.dataset.muscle === selectedMuscle);
+  });
+}
+
+function setBodyView(view) {
+  if (view === bodyView) return;
+  bodyView = view;
+  document.querySelectorAll('#bodymap-toggle button').forEach(b =>
+    b.classList.toggle('active', b.dataset.bodyView === view));
+  const slot = document.getElementById('bodymap-slot');
+  slot.classList.remove('flip');
+  void slot.offsetWidth; // Reflow → Animation neu starten
+  renderBodyMap();
+  slot.classList.add('flip');
+}
+
+function selectMuscle(m) {
+  if (!m) return;
+  // erneutes Antippen desselben Muskels hebt den Filter wieder auf
+  selectedMuscle = (selectedMuscle === m) ? null : m;
+  highlightSelectedMuscle();
+  renderFilterBar();
+  renderHome();
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById('muscle-filter-bar');
+  if (!bar) return;
+  if (!selectedMuscle) {
+    bar.classList.add('hidden');
+    bar.innerHTML = '';
+    return;
+  }
+  bar.classList.remove('hidden');
+  bar.innerHTML = `
+    <span class="filter-chip">${escapeHTML(MUSCLE_LABEL[selectedMuscle] || selectedMuscle)}</span>
+    <button type="button" class="filter-reset" id="filter-reset">✕ Alle Übungen</button>`;
+  document.getElementById('filter-reset').addEventListener('click', () => {
+    selectedMuscle = null;
+    highlightSelectedMuscle();
+    renderFilterBar();
+    renderHome();
+  });
+}
+
+// Körper-Interaktion (Maus + Tastatur, da Regionen role="button" tragen)
+(function bindBodyMap() {
+  const slot = document.getElementById('bodymap-slot');
+  const toggle = document.getElementById('bodymap-toggle');
+  if (slot) {
+    slot.addEventListener('click', e => {
+      const g = e.target.closest('.muscle-region');
+      if (g) selectMuscle(g.dataset.muscle);
+    });
+    slot.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const g = e.target.closest('.muscle-region');
+      if (!g) return;
+      e.preventDefault();
+      selectMuscle(g.dataset.muscle);
+    });
+  }
+  if (toggle) {
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-body-view]');
+      if (btn) setBodyView(btn.dataset.bodyView);
+    });
+  }
+})();
+
 // ---------- Render: Home ----------
 
 let homeIntroDone = false;
 
 function renderHome() {
-  const exercises = getExercises();
+  const all = getExercises();
+  const exercises = selectedMuscle
+    ? all.filter(e => resolveMuscle(e) === selectedMuscle)
+    : all;
   let introIndex = 0;
   for (const group of ['upper', 'lower']) {
     const container = document.querySelector(`[data-categories="${group}"]`);
+    const section = container.closest('.group');
     container.innerHTML = '';
     const inGroup = exercises.filter(e => e.group === group);
+    // Bei aktivem Muskel-Filter leere Gruppen ganz ausblenden.
+    if (selectedMuscle && inGroup.length === 0) {
+      section.classList.add('hidden');
+      continue;
+    }
+    section.classList.remove('hidden');
     if (inGroup.length === 0) {
       container.innerHTML = `<p class="empty-state">Keine Übungen — über Einstellungen hinzufügen.</p>`;
       continue;
@@ -293,10 +457,24 @@ document.getElementById('form-weight').addEventListener('submit', e => {
 
 function openSettings() {
   renderSettings();
+  renderMuscleSelect();
   renderBandPicker();
   renderIconPicker();
   renderThemeToggle();
   showModal('modal-settings');
+}
+
+// Muskel-Auswahl im „Neue Übung"-Formular einmalig aus der Taxonomie füllen.
+function renderMuscleSelect() {
+  const sel = document.getElementById('new-ex-muscle');
+  if (!sel || sel.dataset.filled) return;
+  for (const m of MUSCLE_REGIONS) {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = 'Muskel: ' + m.label;
+    sel.appendChild(o);
+  }
+  sel.dataset.filled = '1';
 }
 
 function renderIconPicker() {
@@ -428,6 +606,7 @@ document.getElementById('settings-exercise-list').addEventListener('click', e =>
     if (confirm(`"${ex.name}" wirklich löschen?\nAlle gespeicherten Gewichte gehen verloren.`)) {
       deleteExercise(id);
       renderSettings();
+      renderBodyMap();
       renderHome();
     }
   }
@@ -440,15 +619,18 @@ document.getElementById('form-new-exercise').addEventListener('submit', e => {
   const category = document.getElementById('new-ex-category').value.trim();
   const iconId = document.getElementById('new-ex-icon').value || 'dumbbell';
   const bandColor = document.getElementById('new-ex-band').value;
+  const muscle = document.getElementById('new-ex-muscle').value;
   if (!name || !category) return;
-  addExercise(name, group, category, iconId, bandColor);
+  addExercise(name, group, category, iconId, bandColor, muscle);
   document.getElementById('new-ex-name').value = '';
   document.getElementById('new-ex-category').value = '';
   document.getElementById('new-ex-icon').value = 'dumbbell';
   document.getElementById('new-ex-band').value = '';
+  document.getElementById('new-ex-muscle').value = '';
   renderSettings();
   renderBandPicker();
   renderIconPicker();
+  renderBodyMap();
   renderHome();
 });
 
@@ -605,4 +787,6 @@ if ('serviceWorker' in navigator) {
 applyTheme(getTheme());
 seedIfEmpty();
 migrateIconIds();
+migrateNewExercises();
+renderBodyMap();
 renderHome();

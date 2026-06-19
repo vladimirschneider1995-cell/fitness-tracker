@@ -1,11 +1,12 @@
 'use strict';
 
-const CACHE_NAME = 'fitness-v6';
+const CACHE_NAME = 'fitness-v11';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './body-map.js',
   './icons-exercises.js',
   './manifest.json',
   './icons/icon-192.png',
@@ -14,8 +15,15 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
+  // cache:'reload' umgeht den HTTP-Cache des Browsers → frische Assets bei jedem SW-Update.
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(ASSETS.map(a =>
+        fetch(a, { cache: 'reload' }).then(resp => {
+          if (resp && resp.ok) return cache.put(a, resp);
+        })
+      ))
+    )
   );
   self.skipWaiting();
 });
