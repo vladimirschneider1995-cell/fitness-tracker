@@ -27,6 +27,13 @@
   /* Anatomie-Linien (Vintage-Tusche auf dunkel) */
   --ink: #e3d2b0;
   --ink-dim: #a98f63;
+
+  /* Geräte-Icons (schattiert, Gerät + Mensch) — dunkel */
+  --ic-skin-hi: #f3e1bd; --ic-skin-mid: #dcc59c; --ic-skin-lo: #bb9f73; --ic-skin-shade: #a98d63;
+  --ic-metal-hi: #a99a80; --ic-metal-mid: #6e6151; --ic-metal-lo: #403628;
+  --ic-cushion-hi: #7f7159; --ic-cushion-lo: #4b4234;
+  --ic-rim: #fbeccb; --ic-line: #8a6a42; --ic-hair: #4a3a24; --ic-hub: #241d13;
+  --ic-tile: #251f18; --ic-shadow: #150f0a; --ic-seam: #3c3528;
 }
 
 /* ---- Hell · cremiges Off-White (Anthropic) ----
@@ -51,6 +58,13 @@
     --body-base: #e0d8c8;
     --ink: #4a3a24;
     --ink-dim: #7d6a4a;
+
+    /* Geräte-Icons (schattiert) — hell */
+    --ic-skin-hi: #eecaa0; --ic-skin-mid: #dcb184; --ic-skin-lo: #c39a68; --ic-skin-shade: #b78d5c;
+    --ic-metal-hi: #bbae98; --ic-metal-mid: #8d8068; --ic-metal-lo: #5f5446;
+    --ic-cushion-hi: #9c8e74; --ic-cushion-lo: #6e6250;
+    --ic-rim: #fff6e4; --ic-line: #8a6a42; --ic-hair: #5a4630; --ic-hub: #3a3022;
+    --ic-tile: #ece4d4; --ic-shadow: #cdbfa6; --ic-seam: #c5bba7;
   }
 }
 :root[data-theme="light"] {
@@ -71,6 +85,13 @@
   --body-base: #e0d8c8;
   --ink: #4a3a24;
   --ink-dim: #7d6a4a;
+
+  /* Geräte-Icons (schattiert) — hell */
+  --ic-skin-hi: #eecaa0; --ic-skin-mid: #dcb184; --ic-skin-lo: #c39a68; --ic-skin-shade: #b78d5c;
+  --ic-metal-hi: #bbae98; --ic-metal-mid: #8d8068; --ic-metal-lo: #5f5446;
+  --ic-cushion-hi: #9c8e74; --ic-cushion-lo: #6e6250;
+  --ic-rim: #fff6e4; --ic-line: #8a6a42; --ic-hair: #5a4630; --ic-hub: #3a3022;
+  --ic-tile: #ece4d4; --ic-shadow: #cdbfa6; --ic-seam: #c5bba7;
 }
 
 * {
@@ -692,6 +713,30 @@ select {
   transform-origin: center;
   animation: ico-hl-pulse 1.8s ease-in-out infinite;
 }
+
+/* Geräte-Icons (Gerät + Mensch, schattiert): Farben über Klassen, da die CSP
+   keine Inline-Styles erlaubt. Töne aus --ic-* (Hell/Dunkel in :root). */
+.ic-tile   { fill: var(--ic-tile); }
+.ic-shadow { fill: var(--ic-shadow); }
+.ic-rimf   { fill: var(--ic-rim); }
+.ic-hair   { fill: var(--ic-hair); }
+.ic-eye    { fill: var(--ic-line); }
+.ic-hubf   { fill: var(--ic-hub); }
+.ic-skinsh { stroke: var(--ic-skin-shade); }
+.ic-rim    { stroke: var(--ic-rim); }
+.ic-line   { stroke: var(--ic-line); }
+.ic-seam   { stroke: var(--ic-seam); }
+.ic-hubs   { stroke: var(--ic-hub); }
+.icg-skin0 { stop-color: var(--ic-skin-hi); }
+.icg-skin1 { stop-color: var(--ic-skin-mid); }
+.icg-skin2 { stop-color: var(--ic-skin-lo); }
+.icg-metal0 { stop-color: var(--ic-metal-hi); }
+.icg-metal1 { stop-color: var(--ic-metal-mid); }
+.icg-metal2 { stop-color: var(--ic-metal-lo); }
+.icg-cush0 { stop-color: var(--ic-cushion-hi); }
+.icg-cush1 { stop-color: var(--ic-cushion-lo); }
+.icg-acc0  { stop-color: var(--accent-hi); }
+.icg-acc1  { stop-color: var(--accent); }
 
 .settings-list li .svg-icon {
   width: 32px;
